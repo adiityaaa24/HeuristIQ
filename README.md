@@ -1,6 +1,6 @@
 # HeuristIQ — Heuristic-Driven Pathfinding & Graph Search Engine (C++)
 
-![build-and-test](https://github.com/adiityaaa24/HeuristIQ/actions/workflows/ci.yml/badge.svg)
+![build-and-test](https://github.com/YOUR-USERNAME/HeuristIQ/actions/workflows/ci.yml/badge.svg)
 
 A from-scratch C++17 implementation of the **A\* search algorithm**, applied to
 both a 2D grid (classic pathfinding-with-obstacles problem) and a generic
@@ -20,9 +20,9 @@ Pages and link it from your resume.
 web/index.html   # double-click to open, or serve it as a static page
 ```
 
-It reimplements the same core logic as the C++ engine (binary-heap priority
-queue, admissible heuristics, corner-clip prevention, weighted cells) in
-plain JavaScript, plus a one-click "Compare with Dijkstra" button that shows
+It reimplements the same core algorithm as the C++ engine (admissible
+heuristics, corner-clip prevention, weighted cells) in plain JavaScript,
+plus a one-click "Compare with Dijkstra" button that shows
 how many fewer nodes A* expands for the same optimal path.
 
 ## Features
