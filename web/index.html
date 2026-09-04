@@ -473,17 +473,17 @@ document.getElementById("runBtn").addEventListener("click", function () {
   pathCells = [];
   exploredCells = [];
 
-  // animate showing the explored cells a few at a time
+  // animate showing the explored cells one at a time, with a short pause
+  // between each one so you can actually see the search happen
   var order = result.visitedOrder;
   var i = 0;
-  var batchSize = 3;
 
   function step() {
-    var end = Math.min(order.length, i + batchSize);
-    for (; i < end; i++) exploredCells.push(order[i]);
-    render();
     if (i < order.length) {
-      requestAnimationFrame(step);
+      exploredCells.push(order[i]);
+      i++;
+      render();
+      setTimeout(step, 25);
     } else {
       finish();
     }
