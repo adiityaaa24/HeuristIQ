@@ -1,6 +1,6 @@
 # HeuristIQ — Heuristic-Driven Pathfinding & Graph Search Engine (C++)
 
-![build-and-test](https://github.com/YOUR-USERNAME/HeuristIQ/actions/workflows/ci.yml/badge.svg)
+![build-and-test](https://github.com/adiityaaa24/HeuristIQ/actions/workflows/ci.yml/badge.svg)
 
 A from-scratch C++17 implementation of the **A\* search algorithm**, applied to
 both a 2D grid (classic pathfinding-with-obstacles problem) and a generic
