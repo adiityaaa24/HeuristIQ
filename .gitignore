@@ -1,0 +1,5 @@
+*.exe
+heuristiq
+test_astar_grid
+test_graph_astar
+build/
