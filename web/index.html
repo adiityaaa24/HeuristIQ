@@ -3,936 +3,568 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HeuristIQ — A* Pathfinding Visualizer</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>A* Pathfinding Visualizer</title>
 <style>
-  :root {
-    --bg: #0a0f1c;
-    --bg-grid-wash: #0d1526;
-    --panel: #111a2d;
-    --panel-border: #223052;
-    --line: #1a2540;
-    --cell: #0e1626;
-    --wall: #3c4869;
-    --swamp: #5b3d1e;
-    --swamp-line: #7a5228;
-    --explored: #2f8f8f;
-    --explored-dim: rgba(47, 143, 143, 0.28);
-    --path: #f2a93b;
-    --path-dim: rgba(242, 169, 59, 0.25);
-    --start: #4ade80;
-    --goal: #fb7185;
-    --text: #e7ecf5;
-    --text-dim: #8496b8;
-    --text-faint: #52618a;
-    --accent: #f2a93b;
-    --danger: #fb7185;
-    --radius: 3px;
-    --serif: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
-    --mono: 'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
-  }
-
-  * { box-sizing: border-box; }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--mono);
-    -webkit-font-smoothing: antialiased;
-  }
-
   body {
-    background-image:
-      radial-gradient(circle at 15% 0%, rgba(47,143,143,0.06), transparent 45%),
-      radial-gradient(circle at 90% 100%, rgba(242,169,59,0.05), transparent 40%);
-    min-height: 100vh;
-  }
-
-  a { color: var(--accent); }
-
-  ::selection { background: var(--path-dim); }
-
-  :focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-
-  .wrap {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 40px 24px 64px;
-  }
-
-  /* ---------- Header ---------- */
-
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 24px;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-    border-bottom: 1px solid var(--panel-border);
-    padding-bottom: 20px;
-  }
-
-  .wordmark {
-    font-family: var(--serif);
-    font-weight: 600;
-    font-size: clamp(28px, 4vw, 40px);
-    letter-spacing: -0.01em;
-    color: var(--text);
-    margin: 0 0 6px;
-    font-optical-sizing: auto;
-  }
-
-  .tagline {
-    color: var(--text-dim);
-    font-size: 13px;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f5f7;
+    color: #222;
     margin: 0;
-    max-width: 46ch;
-    line-height: 1.5;
+    padding: 20px;
   }
 
-  .header-meta {
-    font-size: 11px;
-    color: var(--text-faint);
-    text-align: right;
-    line-height: 1.7;
-  }
-  .header-meta a { color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--panel-border); }
-  .header-meta a:hover { color: var(--accent); border-color: var(--accent); }
-
-  /* ---------- Layout ---------- */
-
-  .app {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 20px;
-    align-items: start;
+  h1 {
+    font-size: 24px;
+    margin-bottom: 4px;
   }
 
-  @media (max-width: 880px) {
-    .app { grid-template-columns: 1fr; }
+  p.subtitle {
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 14px;
   }
 
-  /* ---------- Canvas panel ---------- */
-
-  .stage {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: var(--radius);
-    padding: 14px;
-  }
-
-  .stage-top {
+  .container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    font-size: 11px;
-    color: var(--text-faint);
+    gap: 20px;
+    flex-wrap: wrap;
+    max-width: 1100px;
   }
-
-  .status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text-dim);
-  }
-  .status-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--text-faint);
-    transition: background 0.2s;
-  }
-  .status-pill.searching .status-dot { background: var(--explored); box-shadow: 0 0 6px var(--explored); }
-  .status-pill.found .status-dot { background: var(--start); box-shadow: 0 0 6px var(--start); }
-  .status-pill.none .status-dot { background: var(--goal); box-shadow: 0 0 6px var(--goal); }
 
   #board {
+    border: 1px solid #999;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  .panel {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 14px;
+    width: 240px;
+  }
+
+  .panel h3 {
+    margin-top: 0;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 6px;
+  }
+
+  .mode-buttons button {
+    display: inline-block;
+    margin: 2px;
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 1px solid #999;
+    background: #eee;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+
+  .mode-buttons button.active {
+    background: #4a90e2;
+    color: white;
+    border-color: #357ab8;
+  }
+
+  select, input[type="range"] {
+    width: 100%;
+    margin-top: 4px;
+    margin-bottom: 10px;
+  }
+
+  label {
+    font-size: 13px;
+    display: block;
+    margin-top: 8px;
+  }
+
+  button.action {
     display: block;
     width: 100%;
-    height: auto;
-    border-radius: 2px;
-    background: var(--cell);
-    cursor: crosshair;
-    touch-action: none;
+    padding: 8px;
+    margin-top: 8px;
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  button.action:hover {
+    background: #357ab8;
+  }
+
+  button.secondary {
+    background: #ddd;
+    color: #222;
+  }
+
+  button.secondary:hover {
+    background: #ccc;
+  }
+
+  #stats {
+    font-size: 13px;
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+
+  #compareResult {
+    font-size: 12.5px;
+    margin-top: 10px;
+    color: #333;
   }
 
   .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    margin-top: 12px;
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
-
-  /* ---------- Control panel ---------- */
-
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: var(--radius);
-    padding: 16px;
-  }
-
-  .panel + .panel { margin-top: 16px; }
-
-  .panel h2 {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    color: var(--text-faint);
-    margin: 0 0 12px;
-  }
-
-  .field { margin-bottom: 14px; }
-  .field:last-child { margin-bottom: 0; }
-
-  .field label {
-    display: block;
     font-size: 12px;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-  }
-
-  select, .btn, .toggle-row {
-    font-family: var(--mono);
-    font-size: 12.5px;
-  }
-
-  select {
-    width: 100%;
-    background: var(--cell);
-    color: var(--text);
-    border: 1px solid var(--panel-border);
-    border-radius: var(--radius);
-    padding: 7px 8px;
-  }
-  select:hover { border-color: var(--text-faint); }
-
-  /* segmented mode switch */
-  .seg {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    border: 1px solid var(--panel-border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .seg button {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    background: var(--cell);
-    color: var(--text-dim);
-    border: none;
-    border-right: 1px solid var(--panel-border);
-    padding: 8px 2px;
-    cursor: pointer;
-  }
-  .seg button:last-child { border-right: none; }
-  .seg button:hover { color: var(--text); }
-  .seg button.active {
-    background: var(--panel-border);
-    color: var(--text);
-  }
-  .seg button .dot {
-    display: block;
-    width: 8px; height: 8px;
-    border-radius: 2px;
-    margin: 0 auto 4px;
-  }
-
-  /* toggle switch */
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: var(--text-dim);
-  }
-  .toggle {
-    position: relative;
-    width: 34px; height: 18px;
-    background: var(--cell);
-    border: 1px solid var(--panel-border);
-    border-radius: 999px;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .toggle::after {
-    content: '';
-    position: absolute;
-    top: 2px; left: 2px;
-    width: 12px; height: 12px;
-    background: var(--text-faint);
-    border-radius: 50%;
-    transition: transform 0.15s ease, background 0.15s ease;
-  }
-  .toggle.on { border-color: var(--accent); }
-  .toggle.on::after { transform: translateX(16px); background: var(--accent); }
-
-  input[type="range"] {
-    width: 100%;
-    accent-color: var(--accent);
-    background: transparent;
-  }
-  .range-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10px;
-    color: var(--text-faint);
-    margin-top: 2px;
-  }
-
-  .btn {
-    display: block;
-    width: 100%;
-    text-align: center;
-    background: var(--cell);
-    color: var(--text);
-    border: 1px solid var(--panel-border);
-    border-radius: var(--radius);
-    padding: 9px 10px;
-    cursor: pointer;
-    margin-bottom: 8px;
-  }
-  .btn:last-child { margin-bottom: 0; }
-  .btn:hover { border-color: var(--text-faint); }
-  .btn.primary {
-    background: var(--accent);
-    color: #241503;
-    border-color: var(--accent);
-    font-weight: 600;
-  }
-  .btn.primary:hover { filter: brightness(1.06); }
-  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .btn-row { display: flex; gap: 8px; }
-  .btn-row .btn { margin-bottom: 0; }
-
-  /* readout */
-  .readout { display: grid; grid-template-columns: 1fr auto; row-gap: 9px; font-size: 12.5px; }
-  .readout dt { color: var(--text-dim); }
-  .readout dd { margin: 0; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
-  .readout dd.accent { color: var(--accent); }
-  .readout .divider { grid-column: 1 / -1; border-top: 1px dashed var(--panel-border); margin: 2px 0; }
-
-  .compare-note {
     margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--panel-border);
-    font-size: 11.5px;
-    color: var(--text-dim);
-    line-height: 1.6;
-    min-height: 34px;
+    color: #555;
   }
-  .compare-note strong { color: var(--text); }
+  .legend span {
+    display: inline-block;
+    margin-right: 10px;
+  }
+  .legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 3px;
+    vertical-align: middle;
+  }
 
   footer {
-    margin-top: 28px;
-    font-size: 11px;
-    color: var(--text-faint);
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; animation: none !important; }
+    margin-top: 20px;
+    font-size: 12px;
+    color: #888;
   }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header>
+  <h1>A* Pathfinding Visualizer</h1>
+  <p class="subtitle">Draw walls and weighted cells, pick a heuristic, then run A* to see how it finds the shortest path. Made as a companion demo for my HeuristIQ C++ project.</p>
+
+  <div class="container">
+
     <div>
-      <p class="wordmark">HeuristIQ</p>
-      <p class="tagline">A heuristic-guided search, one node at a time. Draw walls, drop weighted terrain, and watch A* find its way while expanding a fraction of the grid Dijkstra would.</p>
-    </div>
-    <div class="header-meta">
-      companion visualizer for the<br>
-      <a href="https://github.com" target="_blank" rel="noopener">HeuristIQ C++ engine</a> — same algorithm, in the browser
-    </div>
-  </header>
+      <canvas id="board" width="680" height="380"></canvas>
 
-  <div class="app">
-
-    <!-- Canvas / stage -->
-    <div class="stage">
-      <div class="stage-top">
-        <span id="statusPill" class="status-pill"><span class="status-dot"></span><span id="statusText">Idle — draw a board, then run</span></span>
-        <span id="gridDims"></span>
-      </div>
-      <canvas id="board" role="img" aria-label="Grid showing the pathfinding board"></canvas>
       <div class="legend">
-        <span><i class="swatch" style="background:var(--start)"></i>start</span>
-        <span><i class="swatch" style="background:var(--goal)"></i>goal</span>
-        <span><i class="swatch" style="background:var(--wall)"></i>wall</span>
-        <span><i class="swatch" style="background:var(--swamp)"></i>weighted (cost 3)</span>
-        <span><i class="swatch" style="background:var(--explored)"></i>explored</span>
-        <span><i class="swatch" style="background:var(--path)"></i>path</span>
+        <span><i style="background:#4caf50"></i>start</span>
+        <span><i style="background:#e53950"></i>goal</span>
+        <span><i style="background:#555"></i>wall</span>
+        <span><i style="background:#c98a3c"></i>weighted (cost 3)</span>
+        <span><i style="background:#7fc9c9"></i>explored</span>
+        <span><i style="background:#f2b23b"></i>path</span>
       </div>
     </div>
 
-    <!-- Controls -->
-    <div class="controls">
-
-      <div class="panel">
-        <h2>Draw mode</h2>
-        <div class="seg" id="modeSeg">
-          <button data-mode="start" class="active"><span class="dot" style="background:var(--start)"></span>Start</button>
-          <button data-mode="goal"><span class="dot" style="background:var(--goal)"></span>Goal</button>
-          <button data-mode="wall"><span class="dot" style="background:var(--wall)"></span>Wall</button>
-          <button data-mode="swamp"><span class="dot" style="background:var(--swamp)"></span>Slow</button>
-          <button data-mode="erase"><span class="dot" style="background:var(--cell);border:1px solid var(--panel-border)"></span>Erase</button>
-        </div>
+    <div class="panel">
+      <h3>Draw mode</h3>
+      <div class="mode-buttons" id="modeButtons">
+        <button data-mode="start" class="active">Start</button>
+        <button data-mode="goal">Goal</button>
+        <button data-mode="wall">Wall</button>
+        <button data-mode="weight">Weight</button>
+        <button data-mode="erase">Erase</button>
       </div>
 
-      <div class="panel">
-        <h2>Search settings</h2>
-        <div class="field">
-          <label for="heuristicSelect">Heuristic</label>
-          <select id="heuristicSelect">
-            <option value="diagonal" selected>Diagonal (octile)</option>
-            <option value="manhattan">Manhattan</option>
-            <option value="euclidean">Euclidean</option>
-            <option value="zero">None — plain Dijkstra</option>
-          </select>
-        </div>
-        <div class="field">
-          <div class="toggle-row">
-            <label for="diagToggle" style="margin:0">Diagonal movement</label>
-            <div class="toggle on" id="diagToggle" role="switch" aria-checked="true" tabindex="0"></div>
-          </div>
-        </div>
-        <div class="field" style="margin-bottom:0">
-          <label for="speedRange">Animation speed</label>
-          <input type="range" id="speedRange" min="1" max="60" value="10">
-          <div class="range-labels"><span>deliberate</span><span>instant</span></div>
-        </div>
+      <h3>Settings</h3>
+      <label for="heuristic">Heuristic</label>
+      <select id="heuristic">
+        <option value="manhattan">Manhattan</option>
+        <option value="euclidean">Euclidean</option>
+        <option value="diagonal" selected>Diagonal</option>
+        <option value="zero">None (Dijkstra)</option>
+      </select>
+
+      <label><input type="checkbox" id="diagonalCheck" checked> Allow diagonal movement</label>
+
+      <button class="action secondary" id="mazeBtn">Random obstacles</button>
+      <button class="action secondary" id="clearBtn">Clear grid</button>
+      <button class="action" id="runBtn">Run A*</button>
+      <button class="action secondary" id="compareBtn">Compare with Dijkstra</button>
+
+      <div id="stats">
+        Nodes expanded: <span id="statNodes">-</span><br>
+        Path cost: <span id="statCost">-</span><br>
+        Path length: <span id="statLen">-</span><br>
+        Time: <span id="statTime">-</span>
       </div>
 
-      <div class="panel">
-        <h2>Board</h2>
-        <div class="btn-row" style="margin-bottom:8px">
-          <button class="btn" id="mazeBtn">Generate maze</button>
-          <button class="btn" id="clearBtn">Clear board</button>
-        </div>
-        <button class="btn primary" id="runBtn">Run A*</button>
-        <button class="btn" id="compareBtn">Compare with Dijkstra</button>
-        <div class="compare-note" id="compareNote">Run a search first, then compare it against a zero-heuristic (Dijkstra) search on the same board.</div>
-      </div>
-
-      <div class="panel">
-        <h2>Readout</h2>
-        <dl class="readout">
-          <dt>Nodes expanded</dt><dd id="statNodes">—</dd>
-          <dt>Path cost</dt><dd id="statCost">—</dd>
-          <dt>Path length</dt><dd id="statLen">—</dd>
-          <div class="divider"></div>
-          <dt>Time elapsed</dt><dd id="statTime">—</dd>
-        </dl>
-      </div>
-
+      <div id="compareResult"></div>
     </div>
+
   </div>
 
-  <footer>
-    <span>Click and drag on the grid to draw. Same A* logic as the C++ core — priority queue, admissible heuristics, weighted terrain.</span>
-    <span id="cellReadout"></span>
-  </footer>
-
-</div>
+  <footer>Click and drag on the grid to draw walls / weighted cells. Move start and goal by selecting their mode and clicking a new cell.</footer>
 
 <script>
-(() => {
-  'use strict';
+// grid size
+var COLS = 34;
+var ROWS = 19;
+var CELL = 20;
 
-  // ---------------------------------------------------------------
-  // Grid model
-  // ---------------------------------------------------------------
-  const COLS = 34, ROWS = 18;
-  const EMPTY = 0, WALL = 1, SWAMP = 2;
-  const SWAMP_COST = 3;
+// 0 = empty, 1 = wall, 2 = weighted (costs 3 to walk through)
+var grid = [];
+for (var r = 0; r < ROWS; r++) {
+  var row = [];
+  for (var c = 0; c < COLS; c++) row.push(0);
+  grid.push(row);
+}
 
-  const state = {
-    cellType: new Uint8Array(COLS * ROWS), // EMPTY / WALL / SWAMP
-    start: { r: 2, c: 2 },
-    goal: { r: ROWS - 3, c: COLS - 3 },
-    mode: 'start',
-    diagonal: true,
-    heuristic: 'diagonal',
-    speed: 10,
-    running: false,
-    explored: new Set(),   // "r,c" visited during current search
-    path: [],              // array of {r,c} for current path
-    reduceMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-  };
+var start = { r: 2, c: 2 };
+var goal = { r: ROWS - 3, c: COLS - 3 };
+var mode = "start";
+var exploredCells = [];
+var pathCells = [];
+var isDrawing = false;
 
-  const idx = (r, c) => r * COLS + c;
-  const key = (r, c) => r + ',' + c;
-  const inBounds = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
+var canvas = document.getElementById("board");
+var ctx = canvas.getContext("2d");
 
-  function cellCost(r, c) {
-    const t = state.cellType[idx(r, c)];
-    if (t === WALL) return -1;
-    if (t === SWAMP) return SWAMP_COST;
-    return 1;
-  }
+function sameCell(a, b) {
+  return a.r === b.r && a.c === b.c;
+}
 
-  function isStartOrGoal(r, c) {
-    return (r === state.start.r && c === state.start.c) ||
-           (r === state.goal.r && c === state.goal.c);
-  }
+function isStartOrGoal(r, c) {
+  return (r === start.r && c === start.c) || (r === goal.r && c === goal.c);
+}
 
-  // ---------------------------------------------------------------
-  // Binary min-heap priority queue (mirrors the C++ std::priority_queue use)
-  // ---------------------------------------------------------------
-  class MinHeap {
-    constructor() { this.a = []; }
-    get size() { return this.a.length; }
-    push(item) {
-      const a = this.a;
-      a.push(item);
-      let i = a.length - 1;
-      while (i > 0) {
-        const p = (i - 1) >> 1;
-        if (a[p].f <= a[i].f) break;
-        [a[p], a[i]] = [a[i], a[p]];
-        i = p;
-      }
-    }
-    pop() {
-      const a = this.a;
-      const top = a[0];
-      const last = a.pop();
-      if (a.length) {
-        a[0] = last;
-        let i = 0;
-        while (true) {
-          let l = 2 * i + 1, r = 2 * i + 2, smallest = i;
-          if (l < a.length && a[l].f < a[smallest].f) smallest = l;
-          if (r < a.length && a[r].f < a[smallest].f) smallest = r;
-          if (smallest === i) break;
-          [a[i], a[smallest]] = [a[smallest], a[i]];
-          i = smallest;
-        }
-      }
-      return top;
+// draw everything on the canvas
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (var r = 0; r < ROWS; r++) {
+    for (var c = 0; c < COLS; c++) {
+      var x = c * CELL;
+      var y = r * CELL;
+
+      var color = "#fff";
+      if (grid[r][c] === 1) color = "#555";
+      else if (grid[r][c] === 2) color = "#c98a3c";
+
+      // check explored / path overlays
+      var inPath = pathCells.some(function (p) { return p.r === r && p.c === c; });
+      var inExplored = exploredCells.some(function (p) { return p.r === r && p.c === c; });
+
+      if (inPath) color = "#f2b23b";
+      else if (inExplored && grid[r][c] === 0) color = "#7fc9c9";
+
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, CELL, CELL);
+      ctx.strokeStyle = "#ddd";
+      ctx.strokeRect(x, y, CELL, CELL);
     }
   }
 
-  // ---------------------------------------------------------------
-  // Heuristics
-  // ---------------------------------------------------------------
-  const heuristics = {
-    manhattan: (a, b) => Math.abs(a.r - b.r) + Math.abs(a.c - b.c),
-    euclidean: (a, b) => Math.hypot(a.r - b.r, a.c - b.c),
-    diagonal: (a, b) => {
-      const dr = Math.abs(a.r - b.r), dc = Math.abs(a.c - b.c);
-      const D = 1, D2 = Math.SQRT2;
-      return D * (dr + dc) + (D2 - 2 * D) * Math.min(dr, dc);
-    },
-    zero: () => 0,
-  };
+  // start and goal markers
+  drawCircle(start.r, start.c, "#4caf50", "S");
+  drawCircle(goal.r, goal.c, "#e53950", "G");
+}
 
-  function neighbours(r, c, allowDiagonal) {
-    const four = [[-1,0],[1,0],[0,-1],[0,1]];
-    const eight = [...four, [-1,-1],[-1,1],[1,-1],[1,1]];
-    const dirs = allowDiagonal ? eight : four;
-    const out = [];
-    for (const [dr, dc] of dirs) {
-      const nr = r + dr, nc = c + dc;
-      if (!inBounds(nr, nc) || cellCost(nr, nc) === -1) continue;
-      if (dr !== 0 && dc !== 0) {
-        // prevent corner clipping through diagonal walls
-        if (cellCost(r + dr, c) === -1 || cellCost(r, c + dc) === -1) continue;
-      }
-      out.push({ r: nr, c: nc });
+function drawCircle(r, c, color, letter) {
+  var x = c * CELL + CELL / 2;
+  var y = r * CELL + CELL / 2;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, CELL / 2 - 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.font = "12px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(letter, x, y + 1);
+}
+
+// figure out which cell the mouse is over
+function getCellFromEvent(e) {
+  var rect = canvas.getBoundingClientRect();
+  var x = e.clientX - rect.left;
+  var y = e.clientY - rect.top;
+  var c = Math.floor(x / CELL);
+  var r = Math.floor(y / CELL);
+  return { r: r, c: c };
+}
+
+function handlePaint(e) {
+  var cell = getCellFromEvent(e);
+  if (cell.r < 0 || cell.r >= ROWS || cell.c < 0 || cell.c >= COLS) return;
+
+  if (mode === "start") {
+    if (!isStartOrGoal(cell.r, cell.c) && grid[cell.r][cell.c] !== 1) {
+      start = { r: cell.r, c: cell.c };
     }
-    return out;
+  } else if (mode === "goal") {
+    if (!isStartOrGoal(cell.r, cell.c) && grid[cell.r][cell.c] !== 1) {
+      goal = { r: cell.r, c: cell.c };
+    }
+  } else if (!isStartOrGoal(cell.r, cell.c)) {
+    if (mode === "wall") grid[cell.r][cell.c] = 1;
+    else if (mode === "weight") grid[cell.r][cell.c] = 2;
+    else if (mode === "erase") grid[cell.r][cell.c] = 0;
   }
 
-  // Runs A* to completion synchronously; returns { found, path, cost, nodesExpanded, visitedOrder }
-  function solve(start, goal, heuristicName, allowDiagonal) {
-    const h = heuristics[heuristicName];
-    const open = new MinHeap();
-    const gScore = new Map();
-    const cameFrom = new Map();
-    const closed = new Set();
-    const visitedOrder = [];
+  pathCells = [];
+  exploredCells = [];
+  clearStats();
+  render();
+}
 
-    gScore.set(key(start.r, start.c), 0);
-    open.push({ f: h(start, goal), r: start.r, c: start.c });
+canvas.addEventListener("mousedown", function (e) {
+  isDrawing = true;
+  handlePaint(e);
+});
+canvas.addEventListener("mousemove", function (e) {
+  if (isDrawing) handlePaint(e);
+});
+window.addEventListener("mouseup", function () {
+  isDrawing = false;
+});
 
-    let nodesExpanded = 0;
+// mode buttons
+var modeButtons = document.querySelectorAll("#modeButtons button");
+modeButtons.forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    modeButtons.forEach(function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    mode = btn.getAttribute("data-mode");
+  });
+});
 
-    while (open.size) {
-      const cur = open.pop();
-      const ck = key(cur.r, cur.c);
-      if (closed.has(ck)) continue;
-      closed.add(ck);
-      visitedOrder.push(ck);
-      nodesExpanded++;
+// ---------------------------------------------------
+// A* algorithm
+// ---------------------------------------------------
 
-      if (cur.r === goal.r && cur.c === goal.c) {
-        const path = [];
-        let node = ck;
+function cellCost(r, c) {
+  if (grid[r][c] === 1) return -1; // wall, can't walk
+  if (grid[r][c] === 2) return 3;  // weighted cell
+  return 1;
+}
+
+function heuristic(a, b, type) {
+  var dr = Math.abs(a.r - b.r);
+  var dc = Math.abs(a.c - b.c);
+  if (type === "manhattan") return dr + dc;
+  if (type === "euclidean") return Math.sqrt(dr * dr + dc * dc);
+  if (type === "zero") return 0;
+  // diagonal / octile distance
+  return Math.max(dr, dc) + (Math.sqrt(2) - 1) * Math.min(dr, dc);
+}
+
+function getNeighbours(r, c, allowDiagonal) {
+  var dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+  if (allowDiagonal) {
+    dirs = dirs.concat([[-1,-1],[-1,1],[1,-1],[1,1]]);
+  }
+  var result = [];
+  for (var i = 0; i < dirs.length; i++) {
+    var nr = r + dirs[i][0];
+    var nc = c + dirs[i][1];
+    if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+    if (cellCost(nr, nc) === -1) continue;
+
+    // don't let diagonal moves cut through wall corners
+    if (dirs[i][0] !== 0 && dirs[i][1] !== 0) {
+      if (cellCost(r + dirs[i][0], c) === -1 || cellCost(r, c + dirs[i][1]) === -1) continue;
+    }
+    result.push({ r: nr, c: nc });
+  }
+  return result;
+}
+
+// runs A* and returns the result. Uses a plain array for the open list
+// and just scans it for the smallest f each time - not the fastest way
+// to do it but easy to follow.
+function runAStar(startNode, goalNode, heuristicType, allowDiagonal) {
+  var openList = [{ r: startNode.r, c: startNode.c, f: 0 }];
+  var gScore = {};
+  var cameFrom = {};
+  var visited = {};
+  var visitedOrder = [];
+
+  function key(r, c) { return r + "_" + c; }
+
+  gScore[key(startNode.r, startNode.c)] = 0;
+
+  var expandedCount = 0;
+
+  while (openList.length > 0) {
+    // find the node with smallest f in openList
+    var bestIndex = 0;
+    for (var i = 1; i < openList.length; i++) {
+      if (openList[i].f < openList[bestIndex].f) bestIndex = i;
+    }
+    var current = openList[bestIndex];
+    openList.splice(bestIndex, 1);
+
+    var currentKey = key(current.r, current.c);
+    if (visited[currentKey]) continue;
+    visited[currentKey] = true;
+    visitedOrder.push({ r: current.r, c: current.c });
+    expandedCount++;
+
+    if (current.r === goalNode.r && current.c === goalNode.c) {
+      // reconstruct path
+      var path = [];
+      var node = currentKey;
+      path.push(node);
+      while (node !== key(startNode.r, startNode.c)) {
+        node = cameFrom[node];
+        if (!node) break;
         path.push(node);
-        while (node !== key(start.r, start.c)) {
-          node = cameFrom.get(node);
-          if (node === undefined) break;
-          path.push(node);
-        }
-        path.reverse();
-        return {
-          found: true,
-          path,
-          cost: gScore.get(ck),
-          nodesExpanded,
-          visitedOrder,
-        };
       }
-
-      for (const n of neighbours(cur.r, cur.c, allowDiagonal)) {
-        const nk = key(n.r, n.c);
-        if (closed.has(nk)) continue;
-        const diagonalStep = n.r !== cur.r && n.c !== cur.c;
-        const stepCost = (diagonalStep ? Math.SQRT2 : 1) * cellCost(n.r, n.c);
-        const tentativeG = gScore.get(ck) + stepCost;
-        if (!gScore.has(nk) || tentativeG < gScore.get(nk)) {
-          gScore.set(nk, tentativeG);
-          cameFrom.set(nk, ck);
-          open.push({ f: tentativeG + h(n, goal), r: n.r, c: n.c });
-        }
-      }
+      path.reverse();
+      return {
+        found: true,
+        path: path,
+        cost: gScore[currentKey],
+        nodesExpanded: expandedCount,
+        visitedOrder: visitedOrder
+      };
     }
-    return { found: false, path: [], cost: 0, nodesExpanded, visitedOrder };
-  }
 
-  // ---------------------------------------------------------------
-  // Canvas rendering
-  // ---------------------------------------------------------------
-  const canvas = document.getElementById('board');
-  const ctx = canvas.getContext('2d');
-  let cellSize = 20;
+    var neighbours = getNeighbours(current.r, current.c, allowDiagonal);
+    for (var n = 0; n < neighbours.length; n++) {
+      var nb = neighbours[n];
+      var nbKey = key(nb.r, nb.c);
+      if (visited[nbKey]) continue;
 
-  function resizeCanvas() {
-    const cssWidth = canvas.parentElement.clientWidth - 28; // minus panel padding
-    cellSize = Math.floor(cssWidth / COLS);
-    canvas.width = cellSize * COLS;
-    canvas.height = cellSize * ROWS;
-    canvas.style.width = (cellSize * COLS) + 'px';
-    canvas.style.height = (cellSize * ROWS) + 'px';
-    draw();
-  }
+      var isDiagonalMove = nb.r !== current.r && nb.c !== current.c;
+      var stepCost = (isDiagonalMove ? Math.sqrt(2) : 1) * cellCost(nb.r, nb.c);
+      var tentativeG = gScore[currentKey] + stepCost;
 
-  function cssVar(name) {
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  }
-
-  function draw() {
-    const colEmpty = cssVar('--cell');
-    const colLine = cssVar('--line');
-    const colWall = cssVar('--wall');
-    const colSwamp = cssVar('--swamp');
-    const colExplored = cssVar('--explored-dim');
-    const colPath = cssVar('--path');
-    const colPathDim = cssVar('--path-dim');
-    const colStart = cssVar('--start');
-    const colGoal = cssVar('--goal');
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = colEmpty;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const pathSet = new Set(state.path);
-
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const t = state.cellType[idx(r, c)];
-        const x = c * cellSize, y = r * cellSize;
-        const k = key(r, c);
-
-        let fill = null;
-        if (t === WALL) fill = colWall;
-        else if (t === SWAMP) fill = colSwamp;
-        else if (pathSet.has(k)) fill = colPathDim;
-        else if (state.explored.has(k)) fill = colExplored;
-
-        if (fill) {
-          ctx.fillStyle = fill;
-          ctx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
-        }
+      if (gScore[nbKey] === undefined || tentativeG < gScore[nbKey]) {
+        gScore[nbKey] = tentativeG;
+        cameFrom[nbKey] = currentKey;
+        var f = tentativeG + heuristic(nb, goalNode, heuristicType);
+        openList.push({ r: nb.r, c: nb.c, f: f });
       }
     }
-
-    // path stroke on top, drawn as a connected line for clarity
-    if (state.path.length > 1) {
-      ctx.strokeStyle = colPath;
-      ctx.lineWidth = Math.max(2, cellSize * 0.16);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      state.path.forEach((k, i) => {
-        const [r, c] = k.split(',').map(Number);
-        const x = c * cellSize + cellSize / 2, y = r * cellSize + cellSize / 2;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-    }
-
-    // grid lines (subtle, graph-paper feel)
-    ctx.strokeStyle = colLine;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let c = 0; c <= COLS; c++) {
-      ctx.moveTo(c * cellSize + 0.5, 0);
-      ctx.lineTo(c * cellSize + 0.5, canvas.height);
-    }
-    for (let r = 0; r <= ROWS; r++) {
-      ctx.moveTo(0, r * cellSize + 0.5);
-      ctx.lineTo(canvas.width, r * cellSize + 0.5);
-    }
-    ctx.stroke();
-
-    // start / goal markers
-    drawMarker(state.start.r, state.start.c, colStart, 'S');
-    drawMarker(state.goal.r, state.goal.c, colGoal, 'G');
   }
 
-  function drawMarker(r, c, color, label) {
-    const x = c * cellSize + cellSize / 2, y = r * cellSize + cellSize / 2;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(x, y, cellSize * 0.32, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#0a0f1c';
-    ctx.font = `600 ${Math.max(9, cellSize * 0.42)}px ${cssVar('--mono')}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, x, y + 1);
-  }
+  return { found: false, path: [], cost: 0, nodesExpanded: expandedCount, visitedOrder: visitedOrder };
+}
 
-  // ---------------------------------------------------------------
-  // UI wiring
-  // ---------------------------------------------------------------
-  const statusPill = document.getElementById('statusPill');
-  const statusText = document.getElementById('statusText');
-  const gridDims = document.getElementById('gridDims');
-  const cellReadout = document.getElementById('cellReadout');
-  gridDims.textContent = `${COLS} × ${ROWS} cells`;
+function clearStats() {
+  document.getElementById("statNodes").textContent = "-";
+  document.getElementById("statCost").textContent = "-";
+  document.getElementById("statLen").textContent = "-";
+  document.getElementById("statTime").textContent = "-";
+}
 
-  function setStatus(kind, text) {
-    statusPill.className = 'status-pill ' + kind;
-    statusText.textContent = text;
-  }
+// ---------------------------------------------------
+// buttons
+// ---------------------------------------------------
 
-  // Mode segmented control
-  const modeSeg = document.getElementById('modeSeg');
-  modeSeg.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      modeSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.mode = btn.dataset.mode;
-    });
-  });
+document.getElementById("runBtn").addEventListener("click", function () {
+  var heuristicType = document.getElementById("heuristic").value;
+  var allowDiagonal = document.getElementById("diagonalCheck").checked;
 
-  // Diagonal toggle
-  const diagToggle = document.getElementById('diagToggle');
-  function setDiagToggle(on) {
-    state.diagonal = on;
-    diagToggle.classList.toggle('on', on);
-    diagToggle.setAttribute('aria-checked', String(on));
-  }
-  diagToggle.addEventListener('click', () => setDiagToggle(!state.diagonal));
-  diagToggle.addEventListener('keydown', e => {
-    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setDiagToggle(!state.diagonal); }
-  });
+  var t0 = performance.now();
+  var result = runAStar(start, goal, heuristicType, allowDiagonal);
+  var t1 = performance.now();
 
-  // Heuristic select
-  const heuristicSelect = document.getElementById('heuristicSelect');
-  heuristicSelect.addEventListener('change', () => { state.heuristic = heuristicSelect.value; });
+  pathCells = [];
+  exploredCells = [];
 
-  // Speed
-  const speedRange = document.getElementById('speedRange');
-  speedRange.addEventListener('input', () => { state.speed = Number(speedRange.value); });
+  // animate showing the explored cells a few at a time
+  var order = result.visitedOrder;
+  var i = 0;
+  var batchSize = 3;
 
-  // Board painting
-  let painting = false;
-  function paintAt(clientX, clientY) {
-    const rect = canvas.getBoundingClientRect();
-    const c = Math.floor((clientX - rect.left) / cellSize);
-    const r = Math.floor((clientY - rect.top) / cellSize);
-    if (!inBounds(r, c)) return;
-    cellReadout.textContent = `cell (${r}, ${c})`;
-
-    if (state.mode === 'start') {
-      if (isStartOrGoal(r, c) && !(r === state.start.r && c === state.start.c)) return;
-      if (state.cellType[idx(r, c)] === WALL) return;
-      state.start = { r, c };
-    } else if (state.mode === 'goal') {
-      if (isStartOrGoal(r, c) && !(r === state.goal.r && c === state.goal.c)) return;
-      if (state.cellType[idx(r, c)] === WALL) return;
-      state.goal = { r, c };
-    } else if (!isStartOrGoal(r, c)) {
-      if (state.mode === 'wall') state.cellType[idx(r, c)] = WALL;
-      else if (state.mode === 'swamp') state.cellType[idx(r, c)] = SWAMP;
-      else if (state.mode === 'erase') state.cellType[idx(r, c)] = EMPTY;
-    }
-    clearSearchVisuals();
-    draw();
-  }
-
-  canvas.addEventListener('mousedown', e => { painting = true; paintAt(e.clientX, e.clientY); });
-  window.addEventListener('mouseup', () => { painting = false; });
-  canvas.addEventListener('mousemove', e => { if (painting) paintAt(e.clientX, e.clientY); });
-  canvas.addEventListener('touchstart', e => { painting = true; const t = e.touches[0]; paintAt(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
-  canvas.addEventListener('touchmove', e => { if (painting) { const t = e.touches[0]; paintAt(t.clientX, t.clientY); } e.preventDefault(); }, { passive: false });
-  window.addEventListener('touchend', () => { painting = false; });
-
-  function clearSearchVisuals() {
-    state.explored.clear();
-    state.path = [];
-    document.getElementById('statNodes').textContent = '—';
-    document.getElementById('statCost').textContent = '—';
-    document.getElementById('statLen').textContent = '—';
-    document.getElementById('statTime').textContent = '—';
-    setStatus('', 'Idle — draw a board, then run');
-  }
-
-  // ---------------------------------------------------------------
-  // Run / animate
-  // ---------------------------------------------------------------
-  const runBtn = document.getElementById('runBtn');
-  const compareBtn = document.getElementById('compareBtn');
-  const compareNote = document.getElementById('compareNote');
-
-  function animateAndSolve() {
-    if (state.running) return;
-    state.running = true;
-    runBtn.disabled = true;
-    state.explored.clear();
-    state.path = [];
-    setStatus('searching', 'Searching…');
-
-    const t0 = performance.now();
-    const result = solve(state.start, state.goal, state.heuristic, state.diagonal);
-    const elapsed = performance.now() - t0;
-
-    const order = result.visitedOrder;
-    const perFrame = state.reduceMotion ? order.length : Math.max(1, Math.round(order.length / 60) * (state.speed / 10));
-    let i = 0;
-
-    function step() {
-      const end = Math.min(order.length, i + Math.max(1, Math.round(perFrame)));
-      for (; i < end; i++) state.explored.add(order[i]);
-      draw();
-      if (i < order.length) {
-        requestAnimationFrame(step);
-      } else {
-        finish();
-      }
-    }
-
-    function finish() {
-      if (result.found) {
-        state.path = result.path;
-        setStatus('found', 'Path found');
-      } else {
-        setStatus('none', 'No path exists on this board');
-      }
-      draw();
-      document.getElementById('statNodes').textContent = result.nodesExpanded;
-      document.getElementById('statCost').textContent = result.found ? result.cost.toFixed(3) : '—';
-      document.getElementById('statLen').textContent = result.found ? (result.path.length - 1) : '—';
-      document.getElementById('statTime').textContent = elapsed.toFixed(2) + ' ms';
-      state.running = false;
-      runBtn.disabled = false;
-      state.lastResult = result;
-    }
-
-    if (state.speed >= 55 || state.reduceMotion) {
-      state.explored = new Set(order);
-      finish();
-    } else {
+  function step() {
+    var end = Math.min(order.length, i + batchSize);
+    for (; i < end; i++) exploredCells.push(order[i]);
+    render();
+    if (i < order.length) {
       requestAnimationFrame(step);
+    } else {
+      finish();
     }
   }
 
-  runBtn.addEventListener('click', animateAndSolve);
-
-  compareBtn.addEventListener('click', () => {
-    const a = solve(state.start, state.goal, state.heuristic, state.diagonal);
-    const d = solve(state.start, state.goal, 'zero', state.diagonal);
-    if (!a.found || !d.found) {
-      compareNote.innerHTML = 'No path exists between start and goal on this board.';
-      return;
+  function finish() {
+    if (result.found) {
+      pathCells = result.path.map(function (k) {
+        var parts = k.split("_");
+        return { r: parseInt(parts[0]), c: parseInt(parts[1]) };
+      });
     }
-    const ratio = (d.nodesExpanded / Math.max(1, a.nodesExpanded)).toFixed(1);
-    compareNote.innerHTML =
-      `A* expanded <strong>${a.nodesExpanded}</strong> nodes. ` +
-      `Dijkstra expanded <strong>${d.nodesExpanded}</strong> nodes for the same optimal cost of <strong>${a.cost.toFixed(3)}</strong> — ` +
-      `roughly <strong>${ratio}×</strong> fewer with the heuristic guiding the search.`;
-  });
-
-  // ---------------------------------------------------------------
-  // Board utilities
-  // ---------------------------------------------------------------
-  document.getElementById('clearBtn').addEventListener('click', () => {
-    state.cellType.fill(EMPTY);
-    clearSearchVisuals();
-    draw();
-  });
-
-  document.getElementById('mazeBtn').addEventListener('click', () => {
-    generateMaze();
-    clearSearchVisuals();
-    draw();
-  });
-
-  function generateMaze() {
-    let attempts = 0;
-    do {
-      state.cellType.fill(EMPTY);
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          if (isStartOrGoal(r, c)) continue;
-          const roll = Math.random();
-          if (roll < 0.24) state.cellType[idx(r, c)] = WALL;
-          else if (roll < 0.34) state.cellType[idx(r, c)] = SWAMP;
-        }
-      }
-      attempts++;
-    } while (!solve(state.start, state.goal, 'zero', true).found && attempts < 12);
+    render();
+    document.getElementById("statNodes").textContent = result.nodesExpanded;
+    document.getElementById("statCost").textContent = result.found ? result.cost.toFixed(3) : "no path found";
+    document.getElementById("statLen").textContent = result.found ? (result.path.length - 1) : "-";
+    document.getElementById("statTime").textContent = (t1 - t0).toFixed(2) + " ms";
   }
 
-  function buildDefaultBoard() {
-    // A wall with a gap plus a small weighted patch, similar in spirit
-    // to the C++ CLI demo board.
-    for (let r = 0; r < ROWS - 4; r++) state.cellType[idx(r, 17)] = WALL;
-    for (let r = 6; r < 9; r++) {
-      for (let c = 5; c < 12; c++) {
-        if (!isStartOrGoal(r, c)) state.cellType[idx(r, c)] = SWAMP;
-      }
-    }
+  step();
+});
+
+document.getElementById("compareBtn").addEventListener("click", function () {
+  var heuristicType = document.getElementById("heuristic").value;
+  var allowDiagonal = document.getElementById("diagonalCheck").checked;
+
+  var aStarResult = runAStar(start, goal, heuristicType, allowDiagonal);
+  var dijkstraResult = runAStar(start, goal, "zero", allowDiagonal);
+
+  var box = document.getElementById("compareResult");
+  if (!aStarResult.found || !dijkstraResult.found) {
+    box.textContent = "No path exists between start and goal.";
+    return;
   }
 
-  // ---------------------------------------------------------------
-  // Init
-  // ---------------------------------------------------------------
-  buildDefaultBoard();
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-})();
+  box.innerHTML = "A* expanded " + aStarResult.nodesExpanded + " nodes, Dijkstra expanded " +
+    dijkstraResult.nodesExpanded + " nodes. Both found the same cost (" + aStarResult.cost.toFixed(3) + ").";
+});
+
+document.getElementById("clearBtn").addEventListener("click", function () {
+  for (var r = 0; r < ROWS; r++) {
+    for (var c = 0; c < COLS; c++) grid[r][c] = 0;
+  }
+  pathCells = [];
+  exploredCells = [];
+  clearStats();
+  document.getElementById("compareResult").textContent = "";
+  render();
+});
+
+document.getElementById("mazeBtn").addEventListener("click", function () {
+  for (var r = 0; r < ROWS; r++) {
+    for (var c = 0; c < COLS; c++) {
+      if (isStartOrGoal(r, c)) continue;
+      var roll = Math.random();
+      if (roll < 0.22) grid[r][c] = 1;
+      else if (roll < 0.32) grid[r][c] = 2;
+      else grid[r][c] = 0;
+    }
+  }
+  pathCells = [];
+  exploredCells = [];
+  clearStats();
+  render();
+});
+
+// a simple default layout so the grid isn't empty when the page loads
+function setupDefaultGrid() {
+  for (var r = 0; r < ROWS - 4; r++) {
+    grid[r][17] = 1;
+  }
+  for (var r2 = 6; r2 < 9; r2++) {
+    for (var c2 = 5; c2 < 12; c2++) {
+      if (!isStartOrGoal(r2, c2)) grid[r2][c2] = 2;
+    }
+  }
+}
+
+setupDefaultGrid();
+render();
 </script>
+
 </body>
 </html>
