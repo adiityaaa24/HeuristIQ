@@ -1,7 +1,5 @@
 # HeuristIQ — Heuristic-Driven Pathfinding & Graph Search Engine (C++)
 
-# HeuristIQ — Heuristic-Driven Pathfinding & Graph Search Engine (C++)
-
 [![build-and-test](https://github.com/adiityaaa24/HeuristIQ/actions/workflows/ci.yml/badge.svg)](https://github.com/adiityaaa24/HeuristIQ/actions/workflows/ci.yml/badge.svg)
 
 🔗 **[Try the Live Visualizer](https://adiityaaa24.github.io/HeuristIQ/web/)** — draw walls, pick a heuristic, and watch A* find the shortest path. No install needed.
