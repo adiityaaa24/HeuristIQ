@@ -1,8 +1,12 @@
 # HeuristIQ — Heuristic-Driven Pathfinding & Graph Search Engine (C++)
 
-![build-and-test](https://github.com/adiityaaa24/HeuristIQ/actions/workflows/ci.yml/badge.svg)
+# HeuristIQ — Heuristic-Driven Pathfinding & Graph Search Engine (C++)
 
-A from-scratch C++17 implementation of the **A\* search algorithm**, applied to
+[![build-and-test](https://github.com/adiityaaa24/HeuristIQ/actions/workflows/ci.yml/badge.svg)](https://github.com/adiityaaa24/HeuristIQ/actions/workflows/ci.yml/badge.svg)
+
+🔗 **[Try the Live Visualizer](https://adiityaaa24.github.io/HeuristIQ/web/)** — draw walls, pick a heuristic, and watch A* find the shortest path. No install needed.
+
+A from-scratch C++17 implementation of the **A* search algorithm**, applied to
 both a 2D grid (classic pathfinding-with-obstacles problem) and a generic
 weighted graph (adjacency-list based, like a road network). Built to
 demonstrate core data structures & algorithms concepts: priority queues
@@ -10,11 +14,12 @@ demonstrate core data structures & algorithms concepts: priority queues
 
 ## Live visualizer
 
+👉 **[Open the live demo](https://adiityaaa24.github.io/HeuristIQ/web/)** — hosted on GitHub Pages, works directly in any browser.
+
 `web/index.html` is a self-contained browser demo of the same algorithm —
 draw walls and weighted terrain, drop the start/goal anywhere, pick a
 heuristic, and watch A* expand the grid node by node. No install or build
-step: open the file directly in any browser, or host it for free on GitHub
-Pages and link it from your resume.
+step required.
 
 ```
 web/index.html   # double-click to open, or serve it as a static page
